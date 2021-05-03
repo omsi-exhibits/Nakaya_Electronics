@@ -44,7 +44,7 @@ LedModule ledModule = LedModule(LEDPIN, NUMLEDS);
 // Utilities
 HeartBeat heartBeat = HeartBeat(LED_BUILTIN);
 
-Data data = Data();
+//Data data = Data();
 
 // store puck specific number of magnets in this array
 int count = 0;
