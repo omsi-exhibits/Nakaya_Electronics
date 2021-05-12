@@ -2,7 +2,7 @@
  * Shift Register Test
  * ItsyBits 32u4
  * 
- * PISO IC - 74HC165
+ * Shift in IC- SN74HC165
  * The board has 4 connections to sensor modules. Each module has
  * 2 74HC165 to collect 12 parallel inputs from the read switches
  * and send them out as serial data. The reed switches are pulled
@@ -23,69 +23,133 @@
 #include "LedModule.h"
 #include "HeartBeat.h"
 #include "Data.h"
+// pin defines are stored in hw.h
+#include "hw.h"
+#define DEBUG
 
-#define SER1 12
-#define CLK1 11
-#define SHLD1 10
+// Declare array of Sensors and leds 
+#define NUM_SENSORS 4
+#define NUM_LEDMODULES 4
+#define OPTIONS 2
+// Puck sensor connector numbers increment from right to left on the PCB so they are in descending order here
+// this way in the arrays pSensor[1] and ledModules[1] correspond to the same section 
+PuckSensor pSensors[NUM_SENSORS] = {PuckSensor(SER4, CLK4, SHLD4), PuckSensor(SER3, CLK3, SHLD3),PuckSensor(SER2, CLK2, SHLD2),PuckSensor(SER1, CLK1, SHLD1)};
+LedModule ledModules[NUM_LEDMODULES] = {LedModule(LEDPIN1, NUMLEDS), LedModule(LEDPIN2, NUMLEDS),LedModule(LEDPIN4, NUMLEDS), LedModule(LEDPIN4, NUMLEDS)};
 
-#define LEDPIN 9
-#define NUMLEDS 24
+// array of arrays of correct pucks per sensor unit
+int correctPucks[NUM_SENSORS][OPTIONS] = { {2,3}, {5,4}, {1,6}, {7,8} };
 
-#define HEARTLED 13
-bool beat = false;
+// Data object to store sensor data
+Data data = Data();
 
-bool blink = false;
-bool beginFlag = false;
-
-// Declare Sensors
-PuckSensor pS = PuckSensor(SER1, CLK1, SHLD1);
-// Delcare LED modules
-LedModule ledModule = LedModule(LEDPIN, NUMLEDS);
-// Utilities
-HeartBeat heartBeat = HeartBeat(LED_BUILTIN);
-
-//Data data = Data();
-
-// store puck specific number of magnets in this array
 int count = 0;
 int lastCount = 0;
 
+// Utilities - HeartBeat flashes the built in led to let you know the microcontroller has not gotten stuck
+HeartBeat heartBeat = HeartBeat(LED_BUILTIN);
+
 void setup() {
   Serial.begin(115200);
-  pS.begin();
-  ledModule.begin();
+  for(int i = 0; i < NUM_SENSORS; i ++) {
+    pSensors[i].begin();
+    ledModules[i].begin();
+  }
   heartBeat.begin();
   pinMode(HEARTLED, OUTPUT);
 }
 
 void loop() {
-  if(!beginFlag) {
-    // quick hack for calling the begin once inside loop
-    ledModule.begin();
-    beginFlag = true;
-  }
-  // get inputs from reedswitch sensors
   heartBeat.update();
-  ledModule.update();
-  pS.update();
+  // get inputs from reedswitch sensors
+  for(int i = 0; i < NUM_SENSORS; i ++) {
+    pSensors[i].update();
+    ledModules[i].update();
+  }
+  
+  // updates data for each section
+  for(int i = 0; i < NUM_SENSORS; i ++ ) {
+    int c = pSensors[i].countMagnets();
+    data.setCount(i, pSensors[i].countMagnets());
+    #ifdef DEBUG
+      if(data.changed(i)) {
+        Serial.print("Data changed in section: ");
+        Serial.print(i);
+        Serial.print("Count: ");
+        Serial.println(c);
+      }
+    #endif
+  }
 
-  lastCount = count;
-  count = pS.countMagnets();
+  // once we have a list of puckSensors 
+  // for each section
+  // check if data changed
+  // check if data matches correctPucks
+  // trigger led animations
+  // check if lastCount matches correctPucks
+  // trigger led fade out animations
 
-  // On a change of magnet count check if puck is the right one
-  // for the corresponding section and trigger led animation
-  if(count != lastCount) {
+  for(int i = 0; i < NUM_SENSORS; i ++) {
+    if(data.changed(i)) {
+      int cp1 = correctPucks[i][0];
+      int cp2 = correctPucks[i][1];
+      if((data.count(i) == cp1)) {
+        ledModules[i].triggerFadeIn();
+        #ifdef DEBUG
+          Serial.print("Section: "); Serial.print(i);
+          Serial.println(" Fade in1 Triggered");
+        #endif
+      }
+      else if (data.count(i) == cp2) {
+        ledModules[i].triggerFadeIn();
+        #ifdef DEBUG
+          Serial.print("Section: "); Serial.print(i);
+          Serial.println(" Fade in2 Triggered");
+        #endif
+      }
+      else if (data.lastCount(i) == cp1) {
+        ledModules[i].triggerFadeOut();
+        #ifdef DEBUG
+          Serial.print("Section: "); Serial.print(i);
+          Serial.println(" Fade out1 Triggered");
+        #endif
+      }
+      else if (data.lastCount(i) == cp2) {
+        ledModules[i].triggerFadeOut();
+        #ifdef DEBUG
+          Serial.print("Section: "); Serial.print(i);
+          Serial.println(" Fade out2 Triggered");
+        #endif
+      }
+
+    } // end data changed
+  }
+
+/* OLD code 
+  // Logic to determin led animation triggers
+  if(data.changed(3)) {
+    int count = data.count(3);
+    int lastCount = data.lastCount(3);
     Serial.print("count: "); Serial.println(count);
-    if(count == 2) {
-      ledModule.triggerFadeIn();
+    // int correctPucks[NUM_SENSORS][OPTIONS] = { {7,8}, {6,5}, {4,1}, {2,3} };
+
+    // if the count is correct 
+    if(count == correctPucks[3][0]) {
+      Serial.println("triggered led fade in [3][0]");
+      ledModules[0].triggerFadeIn();
     }
-    if((lastCount == 2) & (count != 2)) {
-      ledModule.triggerFadeOut();
-      Serial.println("fade out triggered");
+    if(count == correctPucks[3][1]) {
+      ledModules[0].triggerFadeIn();
+    }
+    if((lastCount == correctPucks[3][0]) & (count != correctPucks[3][0])) {
+      ledModules[2].triggerFadeOut();
+      Serial.println("fade out triggered puck 0");
+    }
+    if((lastCount == correctPucks[3][1]) & (count != correctPucks[3][1])) {
+      ledModules[2].triggerFadeOut();
+      Serial.println("fade out triggered puck 1");
     }
   }
-  // do logic, light up output ledModules
-
+  */
 
 }
 

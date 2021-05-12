@@ -10,11 +10,15 @@ Data::Data() {
 int Data::count(int s) {
     return sectionCount[s];
 }
-int Data::changed(int s) {
+int Data::lastCount(int s) {
+    return sectionLastCount[s];
+}
+bool Data::changed(int s) {
     return sectionChanged[s];
 }
 void Data::setCount(int s, int count) {
     sectionLastCount[s] = sectionCount[s];
+    sectionCount[s] = count;
     // set sectionChanged to true if there is a change
-    sectionLastCount[s] != sectionCount[s] ? sectionChanged[s] == true : sectionChanged[s] == false;
+    sectionLastCount[s] != sectionCount[s] ? sectionChanged[s] = true : sectionChanged[s] = false;
 }

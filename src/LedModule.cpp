@@ -40,8 +40,8 @@ void LedModule::update() {
                 uint32_t currentFade = mStrip.Color(0,0,bChan,0);
                 mStrip.fill(currentFade);
                 mStrip.show();
-                Serial.print(F("bChan: "));
-                Serial.println(bChan);
+                //Serial.print(F("bChan: "));
+                //Serial.println(bChan);
 
             } else {
                 triggerIdle();
