@@ -17,7 +17,7 @@ Power supply
 
 ### Actions
 - [x] Test Magnets
-- [x] Determin requirements
+- [x] Determine requirements
 - [x] Picked Magnets
 - [~] Order Parts for building Bread Board (Prototypes)
 - [x] Design Sensor Board
