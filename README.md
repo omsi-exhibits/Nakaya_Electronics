@@ -8,33 +8,37 @@ and then there is some logic that checks wether or not a correct sensor has been
 calls the led modules trigger functions that begin fading in or fading out.
 Power supply
 
+### Updating software
+The software is built using platformio. You can use Arduino IDE by copying the src folder
+and renaming it to Nakaya and renaming the main.cpp file to Nakaya.ino. This will allow
+you to use Arduino to make modifications. You will need to install any missing libraries
+through the Arduino Library manager
+
+### Project File Organization
+- docs : documentation and pictures
+- src : source code
+- eagle : pcb files
+- examples_tests : code to help test and trouble shoot
+- readme.md : basic project info its the file you are reading
+- other directories are used by platformio and vscode
+
 ### Sensor Board
+ 10” by 10” square board size, sensing distance at 5/8" and less. 
 - Shift Register x 2
 - Reed Switches
 - Phoenix Connectors
 - Spacers - Between board and Milkplex
 - Stand Offs - Between board and bottom plate
 
-### Actions
-- [x] Test Magnets
-- [x] Determine requirements
-- [x] Picked Magnets
-- [~] Order Parts for building Bread Board (Prototypes)
-- [x] Design Sensor Board
-- [x] Design Main Board
-- [x] Order boards
-- [x] Build Out board
-- [x] Test the setup
-- [ ] Program the Interactions
-- [ ] Make Wire Harnesses
-- [ ] Install Board 
-- ...
+## Main board
+- reverse voltage protection
+- phoenix connectors
+- MCU is Adafruit ItsyBitsy32u4
+
 
 ### Audio Option
 Speaker + Amp + Sd Card + Wav Trigger = ~$250
 
-### Sensor board Physical Details
- 10” by 10” square board size, sensing distance desired at least 5/8". 
 
 ### Game Pieces
 - Each set will have 8 game pucks. Each game puck will have 1 more magnet then the
@@ -57,8 +61,22 @@ inputs to the register are enabled.
 The SN74HC165 I am using needs clock to pulse from LOW to HIGH. Opposite of arduino
 shiftIn().
 
-----
-Code TODO:
+### Task Tracking
+- [x] Test Magnets
+- [x] Determine requirements
+- [x] Picked Magnets
+- [~] Order Parts for building Bread Board (Prototypes)
+- [x] Design Sensor Board
+- [x] Design Main Board
+- [x] Order boards
+- [x] Build Out board
+- [x] Test the setup
+- [x] Program the Interactions
+- [ ] Make Wire Harnesses
+- [ ] Install Board 
+- ...
+
+### Code TODO:
 - [x] Code mvp
 - [x] Test multiple shift registers at same time
 - [x] Build out more connectors on the Board
@@ -67,13 +85,12 @@ Code TODO:
 - - Fadeout leaves some leds on...bug 
 - [x] Debounce inputs
 
-The MVP process run.
+### The Minimal Viable Product Specs:
 - Scan the sensors every timeStep interval & insert results into DataObject
 - Update Data that holds sensor results
 - Run logic on Data 
-- - If a corresponding puck is detected, Trigger LedModule FadeIn
-- - If puck is removed since lastStep Trigger LedModule FadeOut
-
+- - If a corresponding puck is detected, Trigger LedModule leds to FadeIn
+- - If puck is removed since lastStep Trigger LedModule leds to FadeOut
 
 ## LED Animations
 Search for NeoPixel Examples?

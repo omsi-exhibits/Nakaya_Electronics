@@ -24,6 +24,10 @@
 #include "LedModule.h"
 #include "HeartBeat.h"
 #include "Data.h"
+#include "audio/AudioOut.h"
+// Audio 
+AudioOut audioOut;
+
 // pin defines are stored in hw.h
 #include "hw.h"
 // Comment out to disable debug messages
@@ -39,7 +43,7 @@ PuckSensor pSensors[NUM_SENSORS] = {PuckSensor(SER4, CLK4, SHLD4), PuckSensor(SE
 LedModule ledModules[NUM_LEDMODULES] = {LedModule(LEDPIN1, NUMLEDS), LedModule(LEDPIN2, NUMLEDS),LedModule(LEDPIN4, NUMLEDS), LedModule(LEDPIN4, NUMLEDS)};
 
 // array of arrays of correct pucks per sensor unit
-int correctPucks[NUM_SENSORS][OPTIONS] = { {2,3}, {1,4}, {5,6}, {7,8} };
+int correctPucks[NUM_SENSORS][OPTIONS] = { {2,8}, {3,6}, {5,1}, {7,4} };
 
 // Data object to store sensor data
 Data data = Data();
@@ -57,6 +61,7 @@ void setup() {
     ledModules[i].begin();
   }
   heartBeat.begin();
+  audioOut.begin();
   pinMode(HEARTLED, OUTPUT);
 }
 
@@ -99,6 +104,8 @@ void loop() {
       int cp2 = correctPucks[i][1];
       if((data.count(i) == cp1)) {
         ledModules[i].triggerFadeIn1();
+        audioOut.playTrack(1); // changed track
+        audioOut.playTrackSolo(2); // changed track
         #ifdef DEBUG
           Serial.print("Section: "); Serial.print(i);
           Serial.println(" Fade in1 Triggered");
@@ -106,6 +113,8 @@ void loop() {
       }
       else if (data.count(i) == cp2) {
         ledModules[i].triggerFadeIn2();
+        audioOut.playTrack(1); // changed track
+        audioOut.playTrackSolo(3); // changed track
         #ifdef DEBUG
           Serial.print("Section: "); Serial.print(i);
           Serial.println(" Fade in2 Triggered");
@@ -113,6 +122,7 @@ void loop() {
       }
       else if (data.lastCount(i) == cp1) {
         ledModules[i].triggerFadeOut1();
+        audioOut.playTrack(4); //puck removed
         #ifdef DEBUG
           Serial.print("Section: "); Serial.print(i);
           Serial.println(" Fade out1 Triggered");
@@ -120,10 +130,19 @@ void loop() {
       }
       else if (data.lastCount(i) == cp2) {
         ledModules[i].triggerFadeOut2();
+        audioOut.playTrack(4); //puck removed
         #ifdef DEBUG
           Serial.print("Section: "); Serial.print(i);
           Serial.println(" Fade out2 Triggered");
         #endif
+      } else {
+        // number of magnets. Previous was not right and its still not right.
+        if(data.count(i) == 0) {
+          audioOut.playTrack(4); //puck incorrect removed
+        } else {
+          audioOut.playTrack(1); //puck incorrect placed
+        }
+
       }
 
     } // end data changed

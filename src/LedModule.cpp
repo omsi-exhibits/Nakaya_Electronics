@@ -44,6 +44,9 @@ uint32_t LedModule::lerpColor(uint32_t colorStart, uint32_t colorEnd, float delt
     return newColor;
 }
 
+void LedModule::animateSparkle() {
+    
+}
 void LedModule::update() {
     switch(mState) {
         case FADEIN :

@@ -15,6 +15,7 @@ class LedModule {
         void triggerFadeIn2();
         void triggerFadeOut1();
         void triggerFadeOut2();
+        void animateSparkle();
         uint32_t lerpColor(uint32_t colorStart, uint32_t colorEnd, float deltaTime);
         uint8_t lerpSingle(uint8_t startColor, uint8_t endColor, float deltaTime);
         float lerp(float x, float x0, float x1, float y0, float y1);
