@@ -12,7 +12,7 @@ Power supply
 The software is built using platformio. You can use Arduino IDE by copying the src folder
 and renaming it to Nakaya and renaming the main.cpp file to Nakaya.ino. This will allow
 you to use Arduino to make modifications. You will need to install any missing libraries
-through the Arduino Library manager
+through the Arduino Library manager.
 
 ### Project File Organization
 - docs : documentation and pictures

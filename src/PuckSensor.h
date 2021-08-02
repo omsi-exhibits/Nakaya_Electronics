@@ -11,7 +11,7 @@ class PuckSensor {
     private:
         uint8_t mSer, mClk, mShld;
         unsigned long mTimer;
-        const unsigned int mTimeStep = 50;
+        const unsigned int mTimeStep = 100;
         byte reedData[2];
         uint8_t myShiftIn(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder);
 };
