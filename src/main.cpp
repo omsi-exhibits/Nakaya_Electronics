@@ -10,12 +10,12 @@
  * Upon reading the correct number of magnets on the read switches the sensor board
  * will triggerFadeIn() on the corresponding ledModule
  * 
- * This project uses a simplified Model View Controller pattern
+ * This project uses a simplified Model View Controller design pattern
  * The Model data is stored in the Data object. The LedModule is the view.
  * The controller code is inside the arduino loop().
  * 
  * Daniel Smolentsev
- * Last Major Update: 5/13/21
+ * Last Major Update: 8/25/21
  * MVP
  */
 #include <Arduino.h>
@@ -42,22 +42,26 @@ AudioOut audioOut;
 PuckSensor pSensors[NUM_SENSORS] = {PuckSensor(SER4, CLK4, SHLD4), PuckSensor(SER3, CLK3, SHLD3),PuckSensor(SER2, CLK2, SHLD2),PuckSensor(SER1, CLK1, SHLD1)};
 LedModule ledModules[NUM_LEDMODULES] = {LedModule(LEDPIN1, NUMLEDS), LedModule(LEDPIN2, NUMLEDS),LedModule(LEDPIN3, NUMLEDS), LedModule(LEDPIN4, NUMLEDS)};
 
-// array of arrays of correct pucks per sensor unit
-int correctPucks[NUM_SENSORS][OPTIONS] = { {2,8}, {3,6}, {5,1}, {7,4} };
+// array of arrays of correct pucks to look for per sensor slot
+int correctPucks[NUM_SENSORS][OPTIONS] = { {6,2}, {5,1}, {7,3}, {8,4} };
 
-//used to wait for the puck to be fully inserted before checking if it is the correct one
+// These timers used to wait for the puck to be fully inserted before checking if it is the correct one
+// because on insertion multiple puck sensor readings are triggered and need to be ignored until after the cooldown
 unsigned long successCooldownTimers[NUM_SENSORS] = {0,0,0,0};
 unsigned long removeCooldownTimers[NUM_SENSORS] = {0,0,0,0};
 
-#define PUCK_COOLDOWN 1000
+// PUCK_COOLDOWN is the delay to wait before check wether the correct puck has been inserted and playing the audio feedback.
+#define PUCK_COOLDOWN 700
+
+// When all 4 slots have the correct puck inserted and its of the same set
+// the coresponding bool array will be all true and a victory sound will play
+bool bentleyInSlots[NUM_SENSORS] = {false, false, false, false};
+bool libbrechtInSlots[NUM_SENSORS] = {false, false, false, false};
 
 // Data object to store sensor data
 Data data = Data();
 
-int count = 0;
-int lastCount = 0;
-
-// Utilities - HeartBeat flashes the built in led to let you know the microcontroller has not gotten stuck
+// Utilities - HeartBeat flashes the built in led every 500ms to let you know the microcontroller has not gotten stuck
 HeartBeat heartBeat = HeartBeat(LED_BUILTIN);
 
 void setup() {
@@ -72,9 +76,6 @@ void setup() {
 }
 
 void loop() {
-  //Serial.print("update time: ");
-  //Serial.println(millis() - timer);
-  //timer = millis();
   heartBeat.update();
   // get inputs from reedswitch sensors
   for(int i = 0; i < NUM_SENSORS; i ++) {
@@ -85,7 +86,7 @@ void loop() {
   // updates data for each section
   for(int i = 0; i < NUM_SENSORS; i ++ ) {
     int c = pSensors[i].countMagnets();
-    data.setCount(i, pSensors[i].countMagnets());
+    data.setCount(i, c);
     #ifdef DEBUG
       if(data.changed(i)) {
         Serial.print("Data changed in section: ");
@@ -96,42 +97,13 @@ void loop() {
     #endif
   }
 
-  // once we have an array of puckSensors 
-  // for each section
-  // check if data changed
-  // check if data matches correctPucks
-  // trigger led animations
-  // check if lastCount matches correctPucks
-  // trigger led fade out animations
-
+  // Check all what is inserted in each slot
   for(int i = 0; i < NUM_SENSORS; i ++) {
     if(data.changed(i)) {
       int cp1 = correctPucks[i][0];
       int cp2 = correctPucks[i][1];
-
-      /*
-      if((data.count(i) == cp1)) {
-        //ledModules[i].triggerFadeIn1();
-        //audioOut.playTrack(1); 
-        //audioOut.playTrackSolo(2); 
-        #ifdef DEBUG
-          Serial.print("Section: "); Serial.print(i);
-          Serial.println(" Fade in1 Triggered");
-        #endif
-      }
-      else if (data.count(i) == cp2) {
-        //ledModules[i].triggerFadeIn2();
-        //audioOut.playTrack(1); 
-        //audioOut.playTrackSolo(3); 
-        #ifdef DEBUG
-          Serial.print("Section: "); Serial.print(i);
-          Serial.println(" Fade in2 Triggered");
-        #endif
-      }
-      */
-      // remove this to re-instate
        
-      // fade out
+      // Trigger fade outs on a detected puck remove
       if (data.lastCount(i) == cp1 ) {
         ledModules[i].triggerFadeOut1();
         #ifdef DEBUG
@@ -147,44 +119,63 @@ void loop() {
         #endif
       } 
 
-
         // play remove sound when the count is 0 and the sensor has not seen any change in the cooldown timer window
         if(data.count(i) == 0 && removeCooldownTimers[i] == 0) {
-          //audioOut.playTrack(4); //puck incorrect removed
-          audioOut.playTrack((i+1)*2); // play 2, 4, 6, 8 Track. Those are the reverse audio insert tracks
+          audioOut.playTrack(4); //puck removed
+          // clear slot state to false if puck is removed
+          libbrechtInSlots[i] = false;
+          bentleyInSlots[i] = false;
         }
 
-        // play insert sound when the sensors detect a count greater than zero and last count was zero and its coooled down
+        // play insert sound when the sensors detect a count greater than zero and last count was zero and its cooled down
         if(data.lastCount(i) == 0 && data.count(i) > 0 && successCooldownTimers[i] == 0) {
-          audioOut.playTrack((i*2 + 1)); //play track 1, 3, 5, 7 Track. Those are the forward audio insert tracks
+          audioOut.playTrack(3); //play forward audio insert track
         }
 
-      //} // uncomment to re-instate
       // update cooldown timers because a change in magnet count has been detected
       if(data.count(i) > 0) {
-        //audioOut.playTrack(1); //play puck inserted sound
         successCooldownTimers[i] = millis();
       }
 
     } // end data changed
 
-    // if changeTimer elapsed 
-    // check if
     for(int i = 0; i < NUM_SENSORS; i ++) {
       if(successCooldownTimers[i] != 0) {
         if(millis() - successCooldownTimers[i] >= PUCK_COOLDOWN) {
           int cp1 = correctPucks[i][0];
           int cp2 = correctPucks[i][1];
           if(data.count(i) == cp1) {
-            audioOut.playTrack(13+i); 
+            audioOut.playTrack(5+i); 
             ledModules[i].triggerFadeIn1();
+            libbrechtInSlots[i] = true;
+
+            // Play achievement audio
+            bool playAchievement = true;
+            for(int j = 0; j < NUM_SENSORS; j ++) {
+              if(libbrechtInSlots[j] == false)
+                playAchievement = false;
+            }
+            if(playAchievement)
+              audioOut.playTrack(1);
+            // end play achievement
+
             #ifdef DEBUG
               Serial.print("Section: "); Serial.print(i);
               Serial.println(" FadeIn1 Triggered");
             #endif
           } else if (data.count(i) == cp2) {
-            audioOut.playTrack(13+i); 
+            audioOut.playTrack(5+i); 
             ledModules[i].triggerFadeIn2();
+            bentleyInSlots[i] = true;
+            // Play achievement audio
+            bool playAchievement = true;
+            for(int j = 0; j < NUM_SENSORS; j ++) {
+              if(bentleyInSlots[j] == false)
+                playAchievement = false;
+            }
+            if(playAchievement)
+              audioOut.playTrack(2);
+            // end play achievement
             #ifdef DEBUG
               Serial.print("Section: "); Serial.print(i);
               Serial.println(" FadeIn2 Triggered");
@@ -192,8 +183,8 @@ void loop() {
           }
           // turn of the timer
           successCooldownTimers[i] = 0;
-        } // end of 
-      }
+        } 
+      } // end if successCooldownTimers
 
       // reset cool down for the remove sound
       if(removeCooldownTimers[i] != 0) {

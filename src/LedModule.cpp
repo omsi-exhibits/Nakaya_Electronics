@@ -2,6 +2,9 @@
 #include <Adafruit_NeoPixel.h>
 //#include <Arduino.h>
 
+//Uncomment to enable serial debug messages
+//#define DEBUG
+
 LedModule::LedModule(uint8_t pin, uint8_t numLeds) {
     mPin = pin;
     mNumLeds = numLeds;
@@ -22,7 +25,7 @@ void LedModule::begin() {
 }
 uint8_t LedModule::lerpSingle(uint8_t startColor, uint8_t endColor, float deltaTime) {
     // lerp a single color channel. For example R for RGB.
-    // deltaTime needs to be normalized value: 0 -1
+    // deltaTime needs to be normalized value: 0-1
     uint8_t currentColor = 0;
     if(deltaTime <= 1 && deltaTime >= 0) {
         currentColor = (uint8_t) round(lerp(deltaTime, 0.0, 1.0, startColor, endColor));
@@ -52,9 +55,15 @@ void LedModule::update() {
         case FADEIN :
             // calculate a fadeIn Brightness 
             if(millis() - mFadeInStartTime < mFadeInDuration) {
-                //Serial.println(millis()-mFadeInStartTime);
+                #ifdef DEBUG
+                    Serial.print("Fade in duration: ");
+                    Serial.println(millis()-mFadeInStartTime);
+                #endif
                 float deltaTime = ((float)(millis() - mFadeInStartTime)/(float)mFadeInDuration);
-                //Serial.println(deltaTime);
+                #ifdef DEBUG
+                    Serial.print("deltaTime: ");
+                    Serial.println(deltaTime);
+                #endif
                 uint32_t currentFade = lerpColor(0, mTargetColor, deltaTime);
                 currentFade = mStrip.gamma32(currentFade);
                 mStrip.fill(currentFade);
@@ -97,11 +106,12 @@ void LedModule::triggerFadeOut1() {
     // amount so that it Fades out from where the fade in left off.
     mFadeStartColor = mStrip.getPixelColor(0);
     //Serial.print("fadeStart: ");
-    //Serial.println(mFadeStartColor);
     if(mState == FADEIN) {
         mCurrentFadeOutDuration = (millis() - mFadeInStartTime);
-        Serial.print("Current fade duration: ");
-        Serial.println(mCurrentFadeOutDuration);
+        #ifdef DEBUG
+            Serial.print("Current fade duration: ");
+            Serial.println(mCurrentFadeOutDuration);
+        #endif
     } else {
         mCurrentFadeOutDuration = mFadeOutDuration;
     }

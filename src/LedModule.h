@@ -36,8 +36,8 @@ class LedModule {
         unsigned int mCurrentFadeOutDuration;
         uint32_t mFadeStartColor;
         uint32_t mTargetColor;
-        const uint32_t mFadeColor1 = Adafruit_NeoPixel::Color(0,0,255);
-        const uint32_t mFadeColor2 = Adafruit_NeoPixel::Color(255,200,200);
+        const uint32_t mFadeColor1 = Adafruit_NeoPixel::Color(100,160,255);
+        const uint32_t mFadeColor2 = Adafruit_NeoPixel::Color(255,200,160);
 
 };
 
