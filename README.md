@@ -19,8 +19,9 @@ through the Arduino Library manager.
 - src : source code
 - eagle : pcb files
 - examples_tests : code to help test and trouble shoot
+- audio_assets : wavTrigger files
 - readme.md : basic project info its the file you are reading
-- other directories are used by platformio and vscode
+- some other directories are used by platformio and vscode
 
 ### Sensor Board
  10” by 10” square board size, sensing distance at 5/8" and less. 
@@ -61,39 +62,9 @@ inputs to the register are enabled.
 The SN74HC165 I am using needs clock to pulse from LOW to HIGH. Opposite of arduino
 shiftIn().
 
-### Task Tracking
-- [x] Test Magnets
-- [x] Determine requirements
-- [x] Picked Magnets
-- [~] Order Parts for building Bread Board (Prototypes)
-- [x] Design Sensor Board
-- [x] Design Main Board
-- [x] Order boards
-- [x] Build Out board
-- [x] Test the setup
-- [x] Program the Interactions
-- [ ] Make Wire Harnesses
-- [ ] Install Board 
-- ...
-
-### Code TODO:
-- [x] Code mvp
-- [x] Test multiple shift registers at same time
-- [x] Build out more connectors on the Board
-- [x] Figure out why the ledModule.begin() does not work from setup
-- [~] Figure out fade in / out state transitions. Really close.
-- - Fadeout leaves some leds on...bug 
-- [x] Debounce inputs
-
-### The Minimal Viable Product Specs:
+### The Minimal Viable Product functions
 - Scan the sensors every timeStep interval & insert results into DataObject
 - Update Data that holds sensor results
 - Run logic on Data 
 - - If a corresponding puck is detected, Trigger LedModule leds to FadeIn
 - - If puck is removed since lastStep Trigger LedModule leds to FadeOut
-
-## LED Animations
-Search for NeoPixel Examples?
-Fade In, Fade Out, Pulse between colors.
-Sparkles? 
-Gama Correction? 
