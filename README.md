@@ -1,12 +1,13 @@
 # Nakaya Electronics Details
 
 ## Theory of Operation
-The Nakaya Electronics are composed of a mainboard that a ItsyBitsy32u4 microcontroller is socketed into it. The mainboard connects to 4 sensor boards and 4 led light boards. Each Sensor board has 12 reed switches that are read by 2 shift in registers.  Each light board has a 24 rgbw neoPixel ring attached. The software for the microcontroller checks each Sensor board for the snow pucks that correspond as a correct answer to the description of the snow for that section. Each section has 2 answers that work. When a correct answer is placed in the slot the light board fades in a color and then does a sparkle animation. When the piece is removed the light fades out.  
+The Nakaya Electronics are composed of a mainboard that a ItsyBitsy32u4 microcontroller is socketed into. The mainboard connects to 4 sensor boards and 4 led light boards. Each Sensor board has 12 reed switches that are read by 2 shift in registers.  Each light board has a 24 rgbw neoPixel ring attached. The software for the microcontroller checks each Sensor board for the snow pucks that correspond as a correct answer to the description of the snow for that section. Each section has 2 answers that work. When a correct answer is placed in the slot the light board fades in a light in the center of the snowflake and the mainboard triggers a sound. When the piece is removed the light fades out.  
 
 The way the software works is that there are Sensor object instances that each loop read the sensor data store it in a data object
 and then there is some logic that checks wether or not a correct sensor has been just places or has been just removed. This in turn
 calls the led modules trigger functions that begin fading in or fading out.
-Power supply
+The same logic is also responsible to trigger sounds
+to play when the pieces are inserted or removed. If all 4 of the same type of snowflake are in the correct slots a victory sound will play.
 
 ### Updating software
 The software is built using platformio. You can use Arduino IDE by copying the src folder
@@ -21,6 +22,7 @@ through the Arduino Library manager.
 - examples_tests : code to help test and trouble shoot
 - audio_assets : wavTrigger files
 - readme.md : basic project info its the file you are reading
+- docs/Nakaya BOM v2.xls (BOM is on sheet 2)
 - some other directories are used by platformio and vscode
 
 ### Sensor Board
@@ -36,10 +38,12 @@ through the Arduino Library manager.
 - phoenix connectors
 - MCU is Adafruit ItsyBitsy32u4
 
+### Audio 
+The wavTrigger is the audio player that interfaces with the main board via a 5pin rectangular connector. KK254 series molex connector.
+This connector carries a serial signal over TX and RX lines. The connector also has 5v and gnd to power the board. The wavTrigger needs a pad solder birdged to allow for power intake from the serial input connector.
 
-### Audio Option
-Speaker + Amp + Sd Card + Wav Trigger = ~$250
-
+Software wise an AudioOut object is used to trigger sounds from the main code. It has a private instance of wavTrigger that is the hardware module that
+plays wav files. The wavTrigger library has a line un-commented to allow interfacing via the hardware Serial1. The audio files are stereo wav files. 
 
 ### Game Pieces
 - Each set will have 8 game pucks. Each game puck will have 1 more magnet then the
